@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Judul akan diatur oleh JS -->
+    <title>Kalkulator Marjin Profit - partnerbisnis</title>
+    <!-- Memuat Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat Google Font (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Mengatur font default ke Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Latar belakang abu-abu muda */
+        }
+        
+        /* Style kustom untuk input angka (menyembunyikan panah) */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Style untuk tab aktif */
+        .tab-btn.active {
+            background-color: #3b82f6; /* bg-blue-600 */
+            color: #ffffff; /* text-white */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 py-12">
+
+    <!-- Kontainer Utama -->
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl p-8 md:p-10 space-y-8">
+        
+        <!-- Header: Judul dan Dropdown Bahasa -->
+        <header class="flex justify-between items-start">
+            <div>
+                <h1 id="app-title" data-translate="title" class="text-3xl font-bold text-gray-800"></h1>
+                <p id="app-subtitle" data-translate="subtitle" class="text-gray-500 mt-2"></p>
+            </div>
+            <!-- Dropdown Bahasa -->
+            <div>
+                <select id="language-select" class="p-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="id">Bahasa Indonesia</option>
+                    <option value="en">English</option>
+                    <option value="zh">中文 (Mandarin)</option>
+                </select>
+            </div>
+        </header>
+
+        <!-- Navigasi Tab (BARU) -->
+        <div class="flex bg-gray-100 rounded-xl p-1">
+            <button class="tab-btn active w-1/3 py-2 px-1 rounded-lg text-sm font-medium transition" data-tab="margin-calc" data-translate="tabMargin"></button>
+            <button class="tab-btn w-1/3 py-2 px-1 rounded-lg text-sm font-medium transition" data-tab="sell-price-calc" data-translate="tabSellPrice"></button>
+            <button class="tab-btn w-1/3 py-2 px-1 rounded-lg text-sm font-medium transition" data-tab="net-profit-calc" data-translate="tabNetProfit"></button>
+        </div>
+
+        <!-- Konten Tab -->
+        <div>
+            <!-- Tab 1: Kalkulator Marjin (Alat yang sudah ada) -->
+            <div id="tab-margin-calc" class="tab-pane space-y-8">
+                <!-- Badan Kalkulator: Input -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="cost-price-tab1" data-translate="costLabel" class="block text-lg font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="cost-price-tab1" data-translate-placeholder="costPlaceholder" class="w-full text-2xl p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                    </div>
+                    <div>
+                        <label for="sell-price-tab1" data-translate="sellLabel" class="block text-lg font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="sell-price-tab1" data-translate-placeholder="sellPlaceholder" class="w-full text-2xl p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                    </div>
+                </div>
+                <!-- Tampilan Hasil -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <span id="profit-output" class="text-4xl font-bold text-blue-700">Rp0,00</span>
+                        <p data-translate="profitLabel" class="text-sm font-medium text-blue-600 uppercase mt-2"></p>
+                    </div>
+                    <div class="bg-green-50 p-6 rounded-xl">
+                        <span id="margin-output" class="text-4xl font-bold text-green-700">0.00%</span>
+                        <p data-translate="marginLabel" class="text-sm font-medium text-green-600 uppercase mt-2"></p>
+                    </div>
+                    <div class="bg-gray-100 p-6 rounded-xl">
+                        <span id="markup-output" class="text-4xl font-bold text-gray-700">0.00%</span>
+                        <p data-translate="markupLabel" class="text-sm font-medium text-gray-600 uppercase mt-2"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Kalkulator Harga Jual (BARU) -->
+            <div id="tab-sell-price-calc" class="tab-pane hidden space-y-8">
+                <div class="space-y-6">
+                    <div>
+                        <label for="cost-price-tab2" data-translate="costLabel" class="block text-lg font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="cost-price-tab2" data-translate-placeholder="costPlaceholder" class="w-full text-2xl p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                    </div>
+                    <div>
+                        <label for="desired-margin" data-translate="desiredMarginLabel" class="block text-lg font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="desired-margin" data-translate-placeholder="desiredMarginPlaceholder" class="w-full text-2xl p-4 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 30">
+                    </div>
+                </div>
+                <!-- Hasil -->
+                <div class="bg-blue-50 p-6 rounded-xl text-center">
+                    <span id="recommended-sell-price" class="text-4xl font-bold text-blue-700">Rp0,00</span>
+                    <p data-translate="recommendedSellPriceLabel" class="text-sm font-medium text-blue-600 uppercase mt-2"></p>
+                </div>
+            </div>
+
+            <!-- Tab 3: Kalkulator Profit Bersih (BARU) -->
+            <div id="tab-net-profit-calc" class="tab-pane hidden space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="sell-price-tab3" data-translate="sellLabel" class="block font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="sell-price-tab3" data-translate-placeholder="sellPlaceholder" class="w-full text-xl p-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                    </div>
+                    <div>
+                        <label for="cogs-tab3" data-translate="costLabel" class="block font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="cogs-tab3" data-translate-placeholder="costPlaceholder" class="w-full text-xl p-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="">
+                    </div>
+                    <div>
+                        <label for="ops-cost-tab3" data-translate="opsCostLabel" class="block font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="ops-cost-tab3" data-translate-placeholder="opsCostPlaceholder" class="w-full text-xl p-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5000">
+                    </div>
+                    <div>
+                        <label for="platform-fee-tab3" data-translate="platformFeeLabel" class="block font-semibold text-gray-700 mb-2"></label>
+                        <input type="number" id="platform-fee-tab3" data-translate-placeholder="platformFeePlaceholder" class="w-full text-xl p-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g., 5">
+                    </div>
+                </div>
+                <!-- Hasil -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                    <div class="bg-blue-50 p-6 rounded-xl">
+                        <span id="net-profit-output" class="text-4xl font-bold text-blue-700">Rp0,00</span>
+                        <p data-translate="netProfitLabel" class="text-sm font-medium text-blue-600 uppercase mt-2"></p>
+                    </div>
+                    <div class="bg-green-50 p-6 rounded-xl">
+                        <span id="net-margin-output" class="text-4xl font-bold text-green-700">0.00%</span>
+                        <p data-translate="netMarginLabel" class="text-sm font-medium text-green-600 uppercase mt-2"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Branding -->
+        <footer class="text-center text-xs text-gray-400 pt-6 border-t border-gray-100 mt-6">
+            <span data-translate="footerText"></span> <a href="#" class="text-blue-600 hover:underline">partnerbisnis</a>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Penyimpanan Teks Terjemahan ---
+            const translations = {
+                'id': {
+                    title: "Kalkulator Profit",
+                    subtitle: "Alat 3-in-1 untuk menghitung profit bisnis Anda.",
+                    // Tab
+                    tabMargin: "Marjin Sederhana",
+                    tabSellPrice: "Hitung Harga Jual",
+                    tabNetProfit: "Profit Bersih",
+                    // Label Umum
+                    costLabel: "Biaya Beli (Modal)",
+                    costPlaceholder: "Masukkan biaya beli",
+                    sellLabel: "Harga Jual",
+                    sellPlaceholder: "Masukkan harga jual",
+                    profitLabel: "Profit (Untung)",
+                    marginLabel: "Marjin Profit",
+                    markupLabel: "Markup",
+                    // Tab 2
+                    desiredMarginLabel: "Marjin yang Diinginkan (%)",
+                    desiredMarginPlaceholder: "Contoh: 30",
+                    recommendedSellPriceLabel: "Rekomendasi Harga Jual",
+                    // Tab 3
+                    opsCostLabel: "Biaya Operasional (Rp)",
+                    opsCostPlaceholder: "Iklan, packing, dll.",
+                    platformFeeLabel: "Biaya Platform (%)",
+                    platformFeePlaceholder: "Contoh: 5",
+                    netProfitLabel: "Profit Bersih",
+                    netMarginLabel: "Marjin Bersih",
+                    // Footer
+                    footerText: "Alat oleh",
+                    currencySymbol: "Rp",
+                    locale: "id-ID"
+                },
+                'en': {
+                    title: "Profit Calculator",
+                    subtitle: "A 3-in-1 tool to calculate your business profits.",
+                    // Tab
+                    tabMargin: "Simple Margin",
+                    tabSellPrice: "Find Sell Price",
+                    tabNetProfit: "Net Profit",
+                    // Label Umum
+                    costLabel: "Cost Price",
+                    costPlaceholder: "Enter cost price",
+                    sellLabel: "Sell Price",
+                    sellPlaceholder: "Enter sell price",
+                    profitLabel: "Profit",
+                    marginLabel: "Profit Margin",
+                    markupLabel: "Markup",
+                    // Tab 2
+                    desiredMarginLabel: "Desired Margin (%)",
+                    desiredMarginPlaceholder: "e.g., 30",
+                    recommendedSellPriceLabel: "Recommended Sell Price",
+                    // Tab 3
+                    opsCostLabel: "Operational Cost ($)",
+                    opsCostPlaceholder: "Ads, packing, etc.",
+                    platformFeeLabel: "Platform Fee (%)",
+                    platformFeePlaceholder: "e.g., 5",
+                    netProfitLabel: "Net Profit",
+                    netMarginLabel: "Net Margin",
+                    // Footer
+                    footerText: "Tool by",
+                    currencySymbol: "$",
+                    locale: "en-US"
+                },
+                'zh': {
+                    title: "利润计算器", // Lìrùn Jìsuànqì
+                    subtitle: "三合一工具，计算您的商业利润。", // Sānhéyī gōngjù, jìsuàn nín de shāngyè lìrùn.
+                    // Tab
+                    tabMargin: "简单利润率", // Jiǎndān Lìrùnlǜ
+                    tabSellPrice: "计算售价", // Jìsuàn Shòujià
+                    tabNetProfit: "净利润", // Jìng Lìrùn
+                    // Label Umum
+                    costLabel: "成本价", // Chéngběn jià
+                    costPlaceholder: "输入成本价", // Shūrù chéngběn jià
+                    sellLabel: "售价", // Shòujià
+                    sellPlaceholder: "输入售价", // Shūrù shòujià
+                    profitLabel: "利润", // Lìrùn
+                    marginLabel: "利润率", // Lìrùn lǜ
+                    markupLabel: "加价", // Jiā jià
+                    // Tab 2
+                    desiredMarginLabel: "期望利润率 (%)", // Qīwàng Lìrùnlǜ
+                    desiredMarginPlaceholder: "例如：30", // Lìrú: 30
+                    recommendedSellPriceLabel: "建议售价", // Jiànyì Shòujià
+                    // Tab 3
+                    opsCostLabel: "运营成本 (¥)", // Yùnyíng Chéngběn
+                    opsCostPlaceholder: "广告、包装等", // Guǎnggào, bāozhuāng děng
+                    platformFeeLabel: "平台费用 (%)", // Píngtái Fèiyòng
+                    platformFeePlaceholder: "例如：5", // Lìrú: 5
+                    netProfitLabel: "净利润", // Jìng Lìrùn
+                    netMarginLabel: "净利润率", // Jìng Lìrùnlǜ
+                    // Footer
+                    footerText: "工具由", // Gōngjù yóu
+                    currencySymbol: "¥",
+                    locale: "zh-CN"
+                }
+            };
+            
+            // --- Elemen DOM ---
+            const languageSelect = document.getElementById('language-select');
+            let currentLang = 'id'; // Bahasa default
+            
+            // Tab
+            const tabs = document.querySelectorAll('.tab-btn');
+            const tabPanes = document.querySelectorAll('.tab-pane');
+
+            // Tab 1: Margin Sederhana
+            const costInput1 = document.getElementById('cost-price-tab1');
+            const sellInput1 = document.getElementById('sell-price-tab1');
+            const profitOutput = document.getElementById('profit-output');
+            const marginOutput = document.getElementById('margin-output');
+            const markupOutput = document.getElementById('markup-output');
+
+            // Tab 2: Harga Jual
+            const costInput2 = document.getElementById('cost-price-tab2');
+            const desiredMarginInput = document.getElementById('desired-margin');
+            const recommendedSellPriceOutput = document.getElementById('recommended-sell-price');
+            
+            // Tab 3: Profit Bersih
+            const sellInput3 = document.getElementById('sell-price-tab3');
+            const cogsInput3 = document.getElementById('cogs-tab3');
+            const opsCostInput3 = document.getElementById('ops-cost-tab3');
+            const platformFeeInput3 = document.getElementById('platform-fee-tab3');
+            const netProfitOutput = document.getElementById('net-profit-output');
+            const netMarginOutput = document.getElementById('net-margin-output');
+
+            // --- Fungsi ---
+
+            /**
+             * Mengatur bahasa pada UI
+             */
+            function setLanguage(lang) {
+                currentLang = lang;
+                const langData = translations[lang];
+                document.title = `${langData.title} - partnerbisnis`;
+                
+                document.querySelectorAll('[data-translate]').forEach(el => {
+                    el.textContent = langData[el.dataset.translate] || el.textContent;
+                });
+                
+                document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
+                    el.placeholder = langData[el.dataset.translatePlaceholder] || el.placeholder;
+                });
+                
+                // Perbarui semua perhitungan dengan format mata uang baru
+                calculateMargin();
+                calculateSellPrice();
+                calculateNetProfit();
+            }
+
+            /**
+             * Memformat angka menjadi mata uang
+             */
+            function formatCurrency(amount) {
+                const { currencySymbol, locale } = translations[currentLang];
+                let formatted = amount.toLocaleString(locale, { 
+                    minimumFractionDigits: 2, 
+                    maximumFractionDigits: 2 
+                });
+                
+                if (currentLang === 'id') {
+                    return currencySymbol + formatted;
+                }
+                return currencySymbol + formatted;
+            }
+            
+            // --- Fungsi Perhitungan ---
+            
+            /**
+             * Kalkulator Tab 1: Marjin Sederhana
+             */
+            function calculateMargin() {
+                const cost = parseFloat(costInput1.value) || 0;
+                const sell = parseFloat(sellInput1.value) || 0;
+                
+                const profit = sell - cost;
+                const margin = (sell > 0) ? (profit / sell) * 100 : 0;
+                const markup = (cost > 0) ? (profit / cost) * 100 : 0;
+                
+                profitOutput.textContent = formatCurrency(profit);
+                marginOutput.textContent = margin.toFixed(2) + '%';
+                markupOutput.textContent = markup.toFixed(2) + '%';
+                
+                if (profit < 0) {
+                    profitOutput.classList.remove('text-blue-700');
+                    profitOutput.classList.add('text-red-600');
+                } else {
+                    profitOutput.classList.add('text-blue-700');
+                    profitOutput.classList.remove('text-red-600');
+                }
+            }
+
+            /**
+             * Kalkulator Tab 2: Hitung Harga Jual
+             */
+            function calculateSellPrice() {
+                const cost = parseFloat(costInput2.value) || 0;
+                const marginPercent = (parseFloat(desiredMarginInput.value) || 0) / 100;
+                
+                // Rumus: Harga Jual = Biaya / (1 - Marjin %)
+                const sellPrice = (marginPercent < 1) ? (cost / (1 - marginPercent)) : cost;
+                
+                recommendedSellPriceOutput.textContent = formatCurrency(sellPrice);
+            }
+            
+            /**
+             * Kalkulator Tab 3: Profit Bersih
+             */
+            function calculateNetProfit() {
+                const sell = parseFloat(sellInput3.value) || 0;
+                const cogs = parseFloat(cogsInput3.value) || 0;
+                const opsCost = parseFloat(opsCostInput3.value) || 0;
+                const platformFeePercent = (parseFloat(platformFeeInput3.value) || 0) / 100;
+                
+                const platformFeeAmount = sell * platformFeePercent;
+                const netProfit = sell - cogs - opsCost - platformFeeAmount;
+                const netMargin = (sell > 0) ? (netProfit / sell) * 100 : 0;
+                
+                netProfitOutput.textContent = formatCurrency(netProfit);
+                netMarginOutput.textContent = netMargin.toFixed(2) + '%';
+
+                if (netProfit < 0) {
+                    netProfitOutput.classList.remove('text-blue-700');
+                    netProfitOutput.classList.add('text-red-600');
+                } else {
+                    netProfitOutput.classList.add('text-blue-700');
+                    netProfitOutput.classList.remove('text-red-600');
+                }
+            }
+
+            // --- Event Listeners ---
+            
+            languageSelect.addEventListener('change', (e) => {
+                setLanguage(e.target.value);
+            });
+            
+            // Listener untuk Tab
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    tabPanes.forEach(pane => {
+                        pane.classList.toggle('hidden', pane.id !== `tab-${tab.dataset.tab}`);
+                    });
+                });
+            });
+
+            // Listener untuk input Tab 1
+            costInput1.addEventListener('input', calculateMargin);
+            sellInput1.addEventListener('input', calculateMargin);
+
+            // Listener untuk input Tab 2
+            costInput2.addEventListener('input', calculateSellPrice);
+            desiredMarginInput.addEventListener('input', calculateSellPrice);
+            
+            // Listener untuk input Tab 3
+            sellInput3.addEventListener('input', calculateNetProfit);
+            cogsInput3.addEventListener('input', calculateNetProfit);
+            opsCostInput3.addEventListener('input', calculateNetProfit);
+            platformFeeInput3.addEventListener('input', calculateNetProfit);
+
+            // --- Inisialisasi ---
+            setLanguage(currentLang); // Atur bahasa default saat memuat
+        });
+    </script>
+
+</body>
+</html>
